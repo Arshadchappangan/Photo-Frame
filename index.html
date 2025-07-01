@@ -5,8 +5,200 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Photo Frame Generator</title>
-    <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <style>
+        /* styles.css */
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 0;
+            margin: 0;
+            background-color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 30px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        input[type="file"],
+        input[type="text"] {
+            margin-bottom: 10px;
+            padding: 8px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            background-color: #2196F3;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #1976D2;
+        }
+
+        #editableName {
+            border: 1px dashed #ccc;
+            padding: 8px;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 20px;
+            text-align: center;
+            color: #aaa;
+            /* placeholder-like */
+        }
+
+        #editableName.filled {
+            color: #000;
+        }
+
+        #resultImage {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+            border: 2px solid #ccc;
+        }
+
+        #downloadLink {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        /* Custom file upload */
+        .custom-file-upload {
+            display: inline-block;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #FF9800;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #F57C00;
+        }
+
+        #photoUpload {
+            display: none;
+            /* hide default file input */
+        }
+
+        .upload-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #2196F3;
+            background-color: #eaf6ff;
+            padding: 30px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 90%;
+            max-width: 320px;
+            margin: 0 auto 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .upload-area:hover {
+            background-color: #d3ecff;
+        }
+
+        .upload-area img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+
+        .upload-area span {
+            font-size: 16px;
+            font-weight: 500;
+            color: #2196F3;
+        }
+
+        #photoUpload {
+            display: none;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 480px) {
+            .upload-area {
+                padding: 20px 10px;
+            }
+
+            .upload-area img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .upload-area span {
+                font-size: 14px;
+            }
+
+            .container {
+                width: 95%;
+                padding: 20px 10px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            #editableName,
+            input[type="text"],
+            .custom-file-upload,
+            button,
+            #downloadLink {
+                width: 100%;
+                font-size: 14px;
+            }
+
+            .custom-file-upload {
+                padding: 12px;
+            }
+
+            #resultImage {
+                max-width: 100%;
+                height: auto;
+            }
+
+            canvas {
+                width: 100% !important;
+                height: auto !important;
+            }
+
+        }
+    </style>
 </head>
 
 <body>
@@ -36,9 +228,180 @@
 
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-<script src="/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        
+    const editableName = document.getElementById('editableName');
+    const photoUpload = document.getElementById('photoUpload');
+    const uploadLabel = document.getElementById('uploadLabel');
+    const generateBtn = document.getElementById('generateBtn');
+    const resultImage = document.getElementById('resultImage');
+    const downloadLink = document.getElementById('downloadLink');
+    const imageCropper = document.getElementById('image-cropper');
+    const cropContainer = document.getElementById('cropper-container');
+    const cropButton = document.getElementById('crop-image-btn');
+
+    let uploadedImage = null;
+    let cropper = null;
+    let imageCroppedReady = false;
+
+    const frameImage = new Image();
+    frameImage.src = 'assets/photo-frame.png';
+
+    function updatePlaceholder() {
+        if (editableName.innerText.trim() === '') {
+            editableName.classList.remove('filled');
+            editableName.innerText = editableName.getAttribute('data-placeholder');
+        } else {
+            editableName.classList.add('filled');
+        }
+    }
+
+    editableName.addEventListener('focus', () => {
+        if (editableName.innerText === editableName.getAttribute('data-placeholder')) {
+            editableName.innerText = '';
+            editableName.classList.add('filled');
+        }
+    });
+
+    editableName.addEventListener('blur', updatePlaceholder);
+    window.addEventListener('DOMContentLoaded', updatePlaceholder);
+
+    photoUpload.addEventListener('change', () => {
+        const file = photoUpload.files[0];
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            imageCropper.src = reader.result;
+            cropContainer.style.display = 'block';
+            imageCroppedReady = false;
+
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(imageCropper, {
+                aspectRatio: 127 / 146,
+                viewMode: 1,
+                autoCropArea: 1,
+            });
+        };
+
+        if (file) reader.readAsDataURL(file);
+    });
+
+    cropButton.addEventListener('click', () => {
+        if (cropper) {
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: 300,
+                height: 300,
+            });
+
+            const tempImage = new Image();
+            tempImage.onload = () => {
+                uploadedImage = tempImage;
+                imageCroppedReady = true;
+                cropContainer.style.display = 'none';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Image Cropped!',
+                    text: 'Now click "Generate Image" to frame it.',
+                    confirmButtonColor: '#2196F3'
+                });
+            };
+            tempImage.src = croppedCanvas.toDataURL();
+        }
+    });
+
+    generateBtn.addEventListener('click', () => {
+        const name = editableName.innerText.trim();
+        const placeholder = editableName.getAttribute('data-placeholder');
+
+        if (!imageCroppedReady || !uploadedImage) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Incomplete Fields',
+                text: 'Please upload and crop a photo first.',
+                confirmButtonColor: '#2196F3'
+            });
+            return;
+        }
+
+        if (name === '' || name === placeholder) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Name Missing',
+                text: 'Please enter your name.',
+                confirmButtonColor: '#2196F3'
+            });
+            return;
+        }
+
+        drawCanvas(name);
+    });
+
+    function drawCanvas(name) {
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const width = 400;
+        const height = 500;
+        canvas.width = width;
+        canvas.height = height;
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, width, height);
+
+        const imgWidth = 127;
+        const imgHeight = 146;
+        const imgX = 22;
+        const imgY = 102;
+
+        // Wait until frame image and uploaded image are both loaded
+        if (!frameImage.complete || !uploadedImage.complete) {
+            console.warn("Image(s) not loaded yet.");
+            return;
+        }
+
+        ctx.drawImage(frameImage, 0, 0, width, height); // Draw frame FIRST
+
+        drawRoundedImage(ctx, uploadedImage, imgX, imgY, imgWidth, imgHeight, 19); // Then image
+
+        ctx.font = 'bold 20px Arial';
+        ctx.fillStyle = 'white';
+        ctx.fillText(name, 170, 220); // Then name
+
+
+        const dataURL = canvas.toDataURL('image/png');
+        resultImage.src = dataURL;
+        downloadLink.href = dataURL;
+        downloadLink.download = 'framed-photo.png';
+        downloadLink.style.display = 'inline';
+        downloadLink.textContent = 'Download Your Image';
+        canvas.style.display = 'none';
+    }
+
+    function drawRoundedImage(ctx, img, x, y, width, height, radius) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+        ctx.clip();
+
+        ctx.drawImage(img, x, y, width, height);
+        ctx.restore();
+    }
+
+
+    </script>
 
 </body>
 
