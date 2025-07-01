@@ -39,6 +39,8 @@
         const file = photoUpload.files[0];
         const reader = new FileReader();
 
+        if (file) document.getElementById('uploadLabel').textContent = file.name;
+
         reader.onload = () => {
             imageCropper.src = reader.result;
             cropContainer.style.display = 'block';
@@ -76,6 +78,7 @@
                 });
             };
             tempImage.src = croppedCanvas.toDataURL();
+
         }
     });
 
