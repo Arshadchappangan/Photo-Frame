@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Frame Generator</title>
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+</head>
+
+<body>
+    <div class="container">
+        <h2>Create Your Framed Photo</h2>
+
+        <div id="editableName" contenteditable="true" data-placeholder="Enter your name here"></div>
+
+        <label for="photoUpload" class="upload-area">
+            <img src="https://icons.veryicon.com/png/o/miscellaneous/blue-ocean-cloud-disk-icon/upload-1-17.png"
+                alt="Upload Icon" />
+            <span id="uploadLabel">Click To Upload</span>
+        </label>
+        <input type="file" id="photoUpload" accept="image/*" />
+        <button style="margin-top: 20px;" id="generateBtn">Generate Image</button><br /><br />
+
+        <canvas id="canvas" style="display:none;"></canvas>
+        <img id="resultImage" /><br />
+        <a id="downloadLink" style="display:none;">Download Your Image</a>
+
+        <div id="cropper-container" style="display: none; text-align:center;">
+            <img id="image-cropper" src="" style="max-width: 100%; margin-bottom: 10px;" />
+            <br />
+            <button id="crop-image-btn">Crop Image</button>
+        </div>
+
+
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script src="/script.js"></script>
+
+</body>
+
+</html>
